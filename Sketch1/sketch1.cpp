@@ -201,24 +201,19 @@ static void init_ogl(CUBE_STATE_T *state)
    check();
 }
 
-const char* readFile(const char *filePath) {
-    std::string content;
-    std::ifstream fileStream(filePath, std::ios::in);
+std::string readFile(const char *filePath) {
 
-    if(!fileStream.is_open()) {
+    std::string line = "";
+    std::ifstream in(filePath);
+    if(!in.is_open()) {
         std::cerr << "Could not read file " << filePath << ". File does not exist." << std::endl;
         return "";
     }
-
-    std::string line = "";
-    while(!fileStream.eof()) {
-        std::getline(fileStream, line);
-        content.append(line + "\n");
-    }
-
-    fileStream.close();
-    std::cout << content <<std::endl;
-    return content.c_str();
+	std::string content((std::istreambuf_iterator<char>(in)), 
+    std::istreambuf_iterator<char>());
+    
+    in.close();
+    return content;
 }
 
 
@@ -232,82 +227,23 @@ static void init_shaders(CUBE_STATE_T *state)
         -1.0,1.0,1.0,1.0
    };
    
-   const GLchar *vshader_source = readFile("vshader.vert");
-      
+   std::string vertShaderStr = readFile("vshader.vert");
+    std::string fragShaderStr = readFile("mandelbrot.frag");
+    std::string juliaShaderStr = readFile("julia.frag");
+    const char *vertShaderSrc = vertShaderStr.c_str();
+    const char *fragShaderSrc = fragShaderStr.c_str();
+    const char *juliaShaderSrc = juliaShaderStr.c_str();
+   
+   //basic vert shader
+   const GLchar *vshader_source = vertShaderSrc;  
    //Mandelbrot
-   const GLchar *mandelbrot_fshader_source =
-"uniform vec4 color;"
-"uniform vec2 scale;"
-"uniform vec2 centre;"
-"varying vec2 tcoord;"
-"void main(void) {"
-"  float intensity;"
-"  vec4 color2;"
-"  float cr=(gl_FragCoord.x-centre.x)*scale.x;"
-"  float ci=(gl_FragCoord.y-centre.y)*scale.y;"
-"  float ar=cr;"
-"  float ai=ci;"
-"  float tr,ti;"
-"  float col=0.0;"
-"  float p=0.0;"
-"  int i=0;"
-"  for(int i2=1;i2<16;i2++)"
-"  {"
-"    tr=ar*ar-ai*ai+cr;"
-"    ti=2.0*ar*ai+ci;"
-"    p=tr*tr+ti*ti;"
-"    ar=tr;"
-"    ai=ti;"
-"    if (p>16.0)"
-"    {"
-"      i=i2;"
-"      break;"
-"    }"
-"  }"
-"  color2 = vec4(float(i)*0.0625,0,0,1);"
-"  gl_FragColor = color2;"
-"}";
-
+   const GLchar *mandelbrot_fshader_source = fragShaderSrc;
    // Julia
-   const GLchar *julia_fshader_source =
-"uniform vec4 color;"
-"uniform vec2 scale;"
-"uniform vec2 centre;"
-"uniform vec2 offset;"
-"varying vec2 tcoord;"
-"uniform sampler2D tex;"
-"void main(void) {"
-"  float intensity;"
-"  vec4 color2;"
-"  float ar=(gl_FragCoord.x-centre.x)*scale.x;"
-"  float ai=(gl_FragCoord.y-centre.y)*scale.y;"
-"  float cr=(offset.x-centre.x)*scale.x;"
-"  float ci=(offset.y-centre.y)*scale.y;"
-"  float tr,ti;"
-"  float col=0.0;"
-"  float p=0.0;"
-"  int i=0;"
-"  vec2 t2;"
-"  t2.x=tcoord.x+(offset.x-centre.x)*(0.5/centre.y);"
-"  t2.y=tcoord.y+(offset.y-centre.y)*(0.5/centre.x);"
-"  for(int i2=1;i2<16;i2++)"
-"  {"
-"    tr=ar*ar-ai*ai+cr;"
-"    ti=2.0*ar*ai+ci;"
-"    p=tr*tr+ti*ti;"
-"    ar=tr;"
-"    ai=ti;"
-"    if (p>16.0)"
-"    {"
-"      i=i2;"
-"      break;"
-"    }"
-"  }"
-"  color2 = vec4(0,float(i)*0.0625,0,1);"
-"  color2 = color2+texture2D(tex,t2);"
-"  gl_FragColor = color2;"
-"}";
-
+   const GLchar *julia_fshader_source = juliaShaderSrc;
+   
+   //set verbose to always be true ( print out shader errors)
+	state->verbose = true;
+		
         state->vshader = glCreateShader(GL_VERTEX_SHADER);
         glShaderSource(state->vshader, 1, &vshader_source, 0);
         glCompileShader(state->vshader);
@@ -502,27 +438,27 @@ _exit:
 
 int main ()
 {
-   //~ int terminate = 0;
-   //~ GLfloat cx, cy;
-   //~ bcm_host_init();
+   int terminate = 0;
+   GLfloat cx, cy;
+   bcm_host_init();
 
-   //~ // Clear application state
-   //~ memset( state, 0, sizeof( *state ) );
+   // Clear application state
+   memset( state, 0, sizeof( *state ) );
       
-   //~ // Start OGLES
-   //~ init_ogl(state);
-   //~ init_shaders(state);
-   //~ cx = state->screen_width/2;
-   //~ cy = state->screen_height/2;
+   // Start OGLES
+   init_ogl(state);
+   init_shaders(state);
+   cx = state->screen_width/2;
+   cy = state->screen_height/2;
 
-   //~ draw_mandelbrot_to_texture(state, cx, cy, 0.003);
-   //~ while (!terminate)
-   //~ {
-      //~ int x, y, b;
-      //~ b = get_mouse(state, &x, &y);
-      //~ if (b) break;
-      //~ draw_triangles(state, cx, cy, 0.003, x, y);
-   //~ }
+   draw_mandelbrot_to_texture(state, cx, cy, 0.003);
+   while (!terminate)
+   {
+      int x, y, b;
+      b = get_mouse(state, &x, &y);
+      if (b) break;
+      draw_triangles(state, cx, cy, 0.003, x, y);
+   }
    
    
    return 0;
