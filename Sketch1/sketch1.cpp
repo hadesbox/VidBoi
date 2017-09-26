@@ -27,7 +27,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // OpenGL|ES 2 demo using shader to compute mandelbrot/julia sets
 // Thanks to Peter de Rivas for original Python code
-#define _GLIBCXX_USE_CXX11_ABI 0
+
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -45,6 +45,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "GLES2/gl2.h"
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
+
+#include <time.h>
+clock_t begin = clock();
 
 typedef struct
 {
@@ -68,6 +71,7 @@ typedef struct
    GLuint unif_color, attr_vertex, unif_scale, unif_offset, unif_tex, unif_centre; 
 // mandelbrot attribs
    GLuint attr_vertex2, unif_scale2, unif_offset2, unif_centre2;
+   GLuint unif_time;
 } CUBE_STATE_T;
 
 static CUBE_STATE_T _state, *state=&_state;
@@ -229,7 +233,7 @@ static void init_shaders(CUBE_STATE_T *state)
    
    std::string vertShaderStr = readFile("vshader.vert");
     std::string fragShaderStr = readFile("mandelbrot.frag");
-    std::string juliaShaderStr = readFile("julia.frag");
+    std::string juliaShaderStr = readFile("myShader.frag");
     const char *vertShaderSrc = vertShaderStr.c_str();
     const char *fragShaderSrc = fragShaderStr.c_str();
     const char *juliaShaderSrc = juliaShaderStr.c_str();
@@ -284,6 +288,7 @@ static void init_shaders(CUBE_STATE_T *state)
         state->unif_offset = glGetUniformLocation(state->program, "offset");
         state->unif_tex    = glGetUniformLocation(state->program, "tex");       
         state->unif_centre = glGetUniformLocation(state->program, "centre");
+        state->unif_time = glGetUniformLocation(state->program, "time");
 
         // mandelbrot
         state->program2 = glCreateProgram();
@@ -381,6 +386,11 @@ static void draw_triangles(CUBE_STATE_T *state, GLfloat cx, GLfloat cy, GLfloat 
         glUniform2f(state->unif_offset, x, y);
         glUniform2f(state->unif_centre, cx, cy);
         glUniform1i(state->unif_tex, 0); // I don't really understand this part, perhaps it relates to active texture?
+        
+        //pass time into the frag shader
+        clock_t end = clock();
+		double elapsed_secs = double(end - begin) / (CLOCKS_PER_SEC/100);
+        glUniform1f(state->unif_time, elapsed_secs);
         check();
         
         glDrawArrays ( GL_TRIANGLE_FAN, 0, 4 );
@@ -451,7 +461,7 @@ int main ()
    cx = state->screen_width/2;
    cy = state->screen_height/2;
 
-   draw_mandelbrot_to_texture(state, cx, cy, 0.003);
+   //~ draw_mandelbrot_to_texture(state, cx, cy, 0.003);
    while (!terminate)
    {
       int x, y, b;
