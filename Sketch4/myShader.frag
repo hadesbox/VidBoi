@@ -54,44 +54,31 @@ float circle(vec2 _st, float _radius, float thickness){
 }
 
 vec2 motion(vec2 position){
-	if( fract(time) < 0.5){
-		position.x  = floor(position.x) + random(floor(time)); 
+	//~ if( fract(time) < 0.5){
+		//~ position.x  = floor(position.x) + random(floor(time)); 
 		
-	}
-	else {
-		position.y = floor(position.y) + random(floor(time));
-	}
+	//~ }
+	//~ else {
+		//~ position.y = floor(position.y) + random(floor(time));
+	//~ }
 	return position;
 }
 
 void main( void ) {
 
-	vec2 pos = vec2(tcoord.x, 1.0-tcoord.y) * (15. * random(floor(time)));
+	vec2 pos = vec2(tcoord.x, 1.0-tcoord.y) * 1.; //* (15. * random(floor(time /10.)));
 	
-	
-	vec2 position = motion(pos);
+	pos = rotate2D(pos, PI * cv0);
 	
 	vec2 center = vec2(0.5, 0.5);
+
 	
-	vec2 ipos = floor(position);  // get the integer coords
-	vec2 fpos = fract(position);  // get the fractional coords
-	
-	fpos = rotate2D(fpos, PI* random(fpos.x - .5 + time/1000.)) ;
-	pos = rotate2D(pos, PI* random(pos.x  + time/1000.));
-	
-	vec3 texColor = texture2D( tex2, pos).xyz;
-	
-	//~ float radius = 0.25 ;
-	//~ float thickness = .05 ;
-	//float circle = circle(fpos, .25, thickness); // not using
-	
-	float offset = step(fract(time), 0.2) /30. ;
-	float boxR = box(fpos , texColor.xy + (offset * step(fract(random(time)), 0.5) ), 0.);
-	float boxG = box(fpos , texColor.xy , 0.);
-	float boxB = box(fpos , texColor.xy , 0.);
+	float offset = 0.5 ;
+	vec2 size = vec2(cv1 + 0.1 , cv2 + 0.1);
+
 	
 	
-	vec3 color = vec3( cv0, cv1, cv2 );//vec3( boxR , boxG, boxB ) ;
+	vec3 color = vec3(box(pos, size, 0.0)) ;
 	
 
 	gl_FragColor = vec4( color, 1.0 );
