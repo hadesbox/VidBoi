@@ -1,7 +1,6 @@
 uniform vec4 color;
 uniform vec2 scale;
 uniform vec2 centre;
-uniform vec2 offset;
 varying vec2 tcoord;
 uniform float time;
 uniform sampler2D tex;

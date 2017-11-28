@@ -64,18 +64,32 @@ vec2 motion(vec2 position){
 	return position;
 }
 
+vec3 horizontalLine(vec2 st, float pos, float size, vec3 color){
+	st.x = fract(st.x) - pos ;
+
+	return (step(0., st.x  ) * 1.0 - step( size,  st.x  )) * color;
+}
+
+vec3 verticalLine(vec2 st, float pos, float size, vec3 color){
+	st.y = fract(st.y) - pos ;
+	return (step(0., st.y  ) * 1.0 - step( size,  st.y  )) * color;
+}
+
 void main( void ) {
 	vec3 center = vec3(cv0 /0.5,cv1/0.5, cv2/0.5);
-	vec2 pos = vec2(tcoord.x, 1.0-tcoord.y)  ;
+	vec2 pos = vec2(tcoord.x, tcoord.y)   ;
 	
 
 	
 	float offset = 0.5 ;
 	vec2 size = vec2(cv1 +.01 , cv2 +.01) / cv0;
+	
+	vec3 linecolor = vec3(0.5, cv1, cv2) ;
 
+	vec3 color = vec3(horizontalLine(pos, cv0, 0.05, linecolor)  + verticalLine( pos, cv1, 0.05, linecolor));
 	
 	
-	vec3 color = vec3(box(pos , size, .0) + center)  - vec3( circle(pos , cv0 ) ) ;
+	//~ vec3 color = vec3(box(pos , size, .0) + center)  - vec3( circle(pos , cv0 ) ) ;
 	
 	gl_FragColor = vec4( color, 1.0 );
 	//~ gl_FragColor = vec4( 1.0 );
