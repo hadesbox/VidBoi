@@ -413,7 +413,7 @@ static void draw_triangles(CUBE_STATE_T *state, GLfloat cx, GLfloat cy, GLfloat 
 {
 		//render to a texture
         //~ glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glBindFramebuffer(GL_FRAMEBUFFER,state->tex_fb);
+        glBindFramebuffer(GL_FRAMEBUFFER,state->tex_fb); //ping pong here for framebuffer
         // Clear the background (not really necessary I suppose)
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
         check();
@@ -444,7 +444,7 @@ static void draw_triangles(CUBE_STATE_T *state, GLfloat cx, GLfloat cy, GLfloat 
         glUniform1i(state->unif_texIN, 2);
         
         glActiveTexture(GL_TEXTURE0 + 1);
-		glBindTexture(GL_TEXTURE_2D, state->tex[1]);
+		glBindTexture(GL_TEXTURE_2D, state->tex[1]); //ping pong texture
         
         //pass time into the frag shader
         clock_t end = clock();

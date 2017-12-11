@@ -207,7 +207,7 @@ void vaporMain(){
 
 
 	float offset = .1;
-	vec3 imgColor = drawImage(vec2(log(rad) + sometime2, angq ), vec2(ang, ang), .8);
+	vec3 imgColor = drawImage(vec2(log(rad) + sometime2, ang ), vec2(ang, ang), .8);
 	//~ if(imgColor != vec3(0,0,0)){
 		//~ color += imgColor;
 	//~ }
