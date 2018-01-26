@@ -39,4 +39,4 @@ When you're ready to take the show on the road and/or open your creations up to 
 ## About The Creator
 Ronald Sardarian is a musician, creative programmer and modular synthesizer enthusiast.
 
-Check out sardarian.wordpress.com for more projects and instagram.com/teafela/ for electronic music and visuals.
+Check out [sardarian.wordpress.com](sardarian.wordpress.com) for more projects and [instagram.com/teafela/](instagram.com/teafela) for electronic music and visuals.
