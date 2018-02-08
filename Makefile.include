@@ -5,14 +5,20 @@ LDFLAGS+=-L$(SDKSTAGE)/opt/vc/lib/ -lSOIL -lbrcmGLESv2 -lbrcmEGL -lopenmaxil -lb
 
 INCLUDES+=-I$(SDKSTAGE)/opt/vc/include/ -I$(SDKSTAGE)/opt/vc/include/interface/vcos/pthreads -I$(SDKSTAGE)/opt/vc/include/interface/vmcs_host/linux -I./ -I$(SDKSTAGE)/opt/vc/src/hello_pi/libs/ilclient -I$(SDKSTAGE)/opt/vc/src/hello_pi/libs/vgfont
 
+
+
 all: $(OUT)
 
 
 %.out: $(OBJS)
-	$(CXX) -$(CFLAGS) $(INCLUDES) $(LDFLAGS) $(SRC) -o$@
+	$(CXX) -$(CFLAGS) $(INCLUDES) $(LDFLAGS) $(SRC) -o$@ 
+
+-include $(OBJS)
 
 clean:
 	for i in $(OBJS); do (if test -e "$$i"; then ( rm $$i ); fi ); done
 	@rm -f $(OUT) $(LIB)
+
+
 
 
