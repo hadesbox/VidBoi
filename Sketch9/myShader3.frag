@@ -218,6 +218,17 @@ void vaporMain(){
 	gl_FragColor = vec4(color, 1.0);
 }
 
+void buzzGlitchMain(){
+	vec2 st = vec2(tcoord.x, tcoord.y);
+	
+	vec3 color = vec3( 0.,0.,0.);
+	
+	
+	gl_FragColor = vec4(color, 1.0);
+	
+}
+
+
 void main( void ) {
 	etchMain();
 }

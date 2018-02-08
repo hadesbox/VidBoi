@@ -51,7 +51,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "EGL/eglext.h"
 
 #include <time.h>
-#define NUM_SCENES 4
+#define NUM_SCENES 5
 #define IMAGE_SIZE 128
 #define PATH "/home/pi/Desktop/VidBoi/Sketch9/" //directory of this sketch
 #define IN_TEX_NAME "pusheen.png"
@@ -83,7 +83,7 @@ typedef struct
    GLuint verbose;
    GLint inputValY = 0;
    GLint inputValX = 0;
-   GLint sceneIndex = 0;
+   GLint sceneIndex = 3;
    GLfloat inputCV0 = 0.0;
    GLfloat inputCV1 = 0.0;
    GLfloat inputCV2 = 0.;

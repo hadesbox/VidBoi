@@ -256,6 +256,7 @@ void grainMain(){
 	gl_FragColor = vec4(color, 1.0);
 }
 
+
 void main( void ) {
 	
 	grainMain();
