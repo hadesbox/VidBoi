@@ -8,8 +8,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include <thread>
-#include <mutex>
+
 #include <linux/input.h>
 
 //gl Includes
@@ -20,7 +19,7 @@
 
 //my includes
 #include "lib/SOIL.h"
-#include "src/inputs.h"
+#include "src/input.h"
 
 #include <time.h>
 #define NUM_SCENES 5
@@ -32,12 +31,8 @@
 clock_t begin = clock();
 
 bool programRunning = true;
-int serialFd = -1;
-std::thread serialThread;
-std::mutex serialMutex;
-float cvIn[] = {0,0,0};
-float potIn[] = {1.,1.,1.};
-float fftIn[] = {0,0,0,0};
+
+Input inputs;
 
 bool loadNewScene = false;
 float lastButtonState = 0;
@@ -413,13 +408,11 @@ static void draw_triangles(CUBE_STATE_T *state, GLfloat cx, GLfloat cy, GLfloat 
         glUniform1i( state->unif_sceneIndex, state->sceneIndex);
         
         
-        serialMutex.lock();
-        state->inputCV0 = abs( cvIn[0] + potIn[0] );
-        state->inputCV1 = abs( cvIn[1] + potIn[1]);
         
-        state->inputCV2 = abs( cvIn[2] + potIn[2]);
-		glUniform4f(state->unif_fft, fftIn[0], fftIn[1], fftIn[2], fftIn[3]);
-        serialMutex.unlock();
+        state->inputCV0 = abs( inputs.getCV(0) + inputs.getPot(0) );
+        state->inputCV1 = abs( inputs.getCV(1) + inputs.getPot(1) );
+        
+        state->inputCV2 = abs(inputs.getCV(2) + inputs.getPot(2) );
         
         glUniform1f(state->unif_cv0, state->inputCV0);
         glUniform1f(state->unif_cv1, state->inputCV1);
@@ -535,104 +528,11 @@ void onButton(bool button){
 		if(button != lastButtonState){
 			loadNewScene = true;
 		}
+		lastButtonState = buttonState;
 		//~ init_shaders(state);
-
 }
 
-//Serial input - from arduino
 
-//reads serial inputs from Arduino, make sure to setupSerial() before calling this function
-bool readSerial(){
-	
-	//~ if(serialFd == -1){
-		//~ setupSerial();
-	//~ }
-	
-	while(programRunning){
-		char buff[0x1000];
-		ssize_t rd = read(serialFd, buff, 100);
-		if(rd != 0){
-			if(strchr(buff, '\n') != NULL){
-				char* tok;
-				
-				int index = -1;
-				tok = strtok(buff, " ");
-				if (tok != NULL){
-					
-					index = atoi(tok);
-					//~ std::cout<< "Index: "<< index <<std::endl;
-				}
-				else{
-					//~ return false;
-				}
-				int val = -1;
-					tok = strtok(NULL, "\n");
-					
-					if (tok != NULL){
-						//~ printf("Value: %s\n", tok);
-						int val = atoi(tok);
-						if(val < 0){
-							val = 0;
-						}
-						else if(val > 1024){
-							val = 1024;
-						}
-						
-						if(index < 10){//cv input
-							serialMutex.lock();
-							cvIn[index] = val/1024.0;
-							serialMutex.unlock();
-						}
-						else if (index >= 10 && index < 20){ //knob input
-							serialMutex.lock();
-							potIn[index-10] = val / 1024.0; //( val -512.0)/1024.0 * 2.; //scaled to -1 to 1
-							serialMutex.unlock();
-						}
-						else if( index >= 30 && index < 40){ //button Input
-							//~ 
-							serialMutex.lock();
-							lastButtonState = buttonState;
-							buttonState = val;
-							serialMutex.unlock();
-							
-							onButton(buttonState);
-							
-						}
-						else if(index > 99){//fft bins
-							serialMutex.lock();
-							fftIn[index-100] = val/140.0;
-							serialMutex.unlock();
-						}
-							
-						
-						//~ std::cout<< "value:" << cvIn[index] << std::endl;
-						//~ state->inputCV0 = cvIn[0];
-						//~ std::cout<< state->inputCV0 <<std::endl;
-					}
-				}
-
-					
-			}
-				//~ ioctl(serialFd,TCFLSH, 2);
-	}
-			
-	return true;		
-} 
-
-bool setupSerial(){
-	const char *dev = "/dev/ttyUSB0";
-
-    serialFd = open(dev, O_RDWR| O_NOCTTY | O_NDELAY |O_NONBLOCK);
-    fcntl(serialFd, F_SETFL, 0);
-    if (serialFd == -1) {
-        fprintf(stderr, "Cannot open %s: %s.\n", dev, strerror(errno));
-        return false;
-    }
-    
-    serialThread = std::thread(readSerial);
-    
-    return true;
-} 
 
 //Keyboard input
 
@@ -688,7 +588,7 @@ bool readKeyboard(){
 	}
 	
 	
-	if (ev.code == KEY_Q){
+	if (ev.code == KEY_ESC){
 		return false;
 	}
 	return true;
@@ -699,7 +599,7 @@ bool readKeyboard(){
 
 int main ()
 {
-
+	
    int terminate = 0;
    GLfloat cx, cy;
    bcm_host_init();
@@ -714,10 +614,9 @@ int main ()
    cy = state->screen_height/2;
    
    setupKeyboard();
-   setupSerial();
+   inputs.addButtonCallback(&onButton);
    while (!terminate)
    {
-      int x, y, b;
 
 	  if(!readKeyboard()){
 		break;
@@ -739,8 +638,8 @@ int main ()
 
    }
    
-   programRunning = false;
-   serialThread.join();
+   
+   
    fflush(stdout);
     fprintf(stderr, "%s.\n", strerror(errno));
    
