@@ -6,24 +6,100 @@
 #include <fstream>
 #include <fcntl.h>
 
+//wiringPi includes
+#define BASE 100
+#define SPI_CHAN 0
+#include <wiringPi.h>
+#include "mcp3004.h"
+
+
 Input::Input(){
 	onButton = 0;
-	setupSerial();
+	if(useSerial){
+		setupSerial();
+	}
+	else{
+		setupADC();
+	}
 }
 
 Input::~Input(){
-	threadRunning = false;
-	serialThread.join();
+	if(threadRunning){
+		threadRunning = false;
+		inputThread.join();
+	}
 }
 
 void Input::update(){
-	//readSerial();
+	
 }
 
 void Input::addButtonCallback(std::function<void(bool)> buttonCallback){
 	onButton = buttonCallback;
 }
 
+bool Input::setupADC(){
+	//initialize wiringPi
+	if (wiringPiSetup() == -1)
+	{
+		std::cout<< "Input Error: WiringPi setup failure" << std::endl;
+		return false;
+	}
+	mcp3004Setup(BASE, SPI_CHAN);
+	//start input thread
+	threadRunning = true;
+	inputThread = std::thread(&Input::readADC, this);
+	return true;
+}
+
+bool Input::readADC(){
+	while(threadRunning){
+		//read mcp3008
+		for ( int chan = 0; chan < 8 ;chan++) 
+		{
+			//read in ADC values
+			int val = analogRead( BASE + chan);
+			int smoothVal;
+			
+			//channels 0,1,2 are Potentiometers
+			if(chan < 3){
+				smoothVal = smooth(val, lastPot[chan]);
+				//~ if(smoothVal != -1){
+					inputMutex.lock();
+					
+					potIn[chan] = val/1024.0;
+					inputMutex.unlock();
+					lastPot[chan] = val;
+				//~ }
+			}
+			
+			//channels 3,4,5 are corresponding CVs
+			else if(chan < 6){
+				//~ smoothVal = smooth(val, lastCV[chan-3]);
+				//~ if(smoothVal != -1){
+					//~ inputMutex.lock();
+					//~ cvIn[chan-3] = val/1024.0;
+					//~ inputMutex.unlock();
+					//~ lastCV[chan-3] = val;
+				//~ }
+			}
+			
+			printf("%d: %d | %d\n", chan, val, smoothVal);
+		}
+		
+		//read button pin
+		int val = digitalRead(29); //Physical Pin 40, run "gpio readall" for pin details
+		inputMutex.lock();
+		buttonIn = val;
+		inputMutex.unlock();
+		if(onButton){
+			onButton(buttonIn);
+		}
+		printf("Button%d\n", buttonIn);
+	}
+	
+	return true;
+}
 
 
 
@@ -62,20 +138,20 @@ bool Input::readSerial(){
 						}
 						
 						if(index < 10){//cv input
-							serialMutex.lock();
+							inputMutex.lock();
 							cvIn[index] = val/1024.0;
-							serialMutex.unlock();
+							inputMutex.unlock();
 						}
 						else if (index >= 10 && index < 20){ //knob input
-							serialMutex.lock();
+							inputMutex.lock();
 							potIn[index-10] = val / 1024.0; //( val -512.0)/1024.0 * 2.; //scaled to -1 to 1
-							serialMutex.unlock();
+							inputMutex.unlock();
 						}
 						else if( index >= 30 && index < 40){ //button Input
-							serialMutex.lock();
+							inputMutex.lock();
 							
 							buttonIn = val;
-							serialMutex.unlock();
+							inputMutex.unlock();
 							
 							onButton(buttonIn);
 							
@@ -102,25 +178,42 @@ bool Input::setupSerial(){
     }
     
     threadRunning = true;
-    serialThread = std::thread(&Input::readSerial, this);
+    inputThread = std::thread(&Input::readSerial, this);
     
     return true;
 } 
 
 float Input::getCV(int i){
 	float ret;
-	Input::serialMutex.lock();
+	Input::inputMutex.lock();
 	ret = cvIn[i];
-	Input::serialMutex.unlock();
+	Input::inputMutex.unlock();
 	return ret;
 }
 
 float Input::getPot(int i){
 	float ret;
-	Input::serialMutex.lock();
+	Input::inputMutex.lock();
 	ret = potIn[i];
-	Input::serialMutex.unlock();
+	Input::inputMutex.unlock();
 	return ret;
+}
+
+int Input::smooth(int in, int PrevVal){ 
+    int margin = PrevVal * .008; //  get 2% of the raw value.  Tune for lowest non-jitter value.
+    /*
+     * Next we add (or subtract...) the 'standard' fixed value to the previous reading. (PotPrevVal needs to be declared outside the function so it persists.)
+     * Here's the twist: Since the jitter seems to be worse at high raw vals, we also add/subtract the 2% of total raw. Insignificantat on low 
+     * raw vals, but enough to remove the jitter at raw >900 without wrecking linearity or adding 'lag', or slowing down the loop, etc.
+     */
+    if (in > PrevVal + (4 + margin) || in < PrevVal - (5 + margin)) { // a 'real' change in value? Tune the two numeric values for best results
+      
+      //average last 2 values ofr smoothing
+      in = (PrevVal + in) / 2.0;
+      //PotPrevVal = in; // store valid raw val  for next comparison
+      return in;
+    }  
+    return -1;  
 }
  
 //==============================================================================

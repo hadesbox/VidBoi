@@ -15,6 +15,32 @@ uniform sampler2D texIN;
 #define PI 3.14159265358979323846
 #define TWO_PI 6.28318530718
 
+float mod289(float x){return x - floor(x * (1.0 / 289.0)) * 289.0;}
+vec4 mod289(vec4 x){return x - floor(x * (1.0 / 289.0)) * 289.0;}
+vec4 perm(vec4 x){return mod289(((x * 34.0) + 1.0) * x);}
+
+float noise(vec3 p){
+    vec3 a = floor(p);
+    vec3 d = p - a;
+    d = d * d * (3.0 - 2.0 * d);
+
+    vec4 b = a.xxyy + vec4(0.0, 1.0, 0.0, 1.0);
+    vec4 k1 = perm(b.xyxy);
+    vec4 k2 = perm(k1.xyxy + b.zzww);
+
+    vec4 c = k2 + a.zzzz;
+    vec4 k3 = perm(c);
+    vec4 k4 = perm(c + 1.0);
+
+    vec4 o1 = fract(k3 * (1.0 / 41.0));
+    vec4 o2 = fract(k4 * (1.0 / 41.0));
+
+    vec4 o3 = o2 * d.z + o1 * (1.0 - d.z);
+    vec2 o4 = o3.yw * d.x + o3.xz * (1.0 - d.x);
+
+    return o4.y * d.y + o4.x * (1.0 - d.y);
+}
+
 float random (float x) {
     return fract(sin(x)*1e4);
 }
@@ -218,17 +244,20 @@ void vaporMain(){
 	gl_FragColor = vec4(color, 1.0);
 }
 
-void buzzGlitchMain(){
+void grainMain(){
 	vec2 st = vec2(tcoord.x, tcoord.y);
+	st += texture2D( texIN, vec2(noise( (cv0 *10.)  * vec3(st.x, random(st.y), st.x + st.y + (time/20.) * cv1 ) )) ).xy;
+	st *= vec2( sin(st.y + (cv0/10.)) * cos(cv2*100.) , log(st.x) * (cv2 * 50.)  ); 
+	vec3 color = vec3(random(st * time/10./cv2 ));
+	color /= sin(texture2D( texIN, vec2((time/10.) *cv1), st.y * (cv0 * 10.) ).xyz + cv2) ;
+	color -= texture2D( texIN, vec2(st.x, (time/20.) * cv2 ) ).xyz;
 	
-	vec3 color = vec3( 0.,0.,0.);
-	
-	
+
 	gl_FragColor = vec4(color, 1.0);
-	
 }
 
 
 void main( void ) {
-	etchMain();
+	
+	grainMain();
 }

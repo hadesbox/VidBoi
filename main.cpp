@@ -50,7 +50,7 @@ typedef struct
    GLuint verbose;
    GLint inputValY = 0;
    GLint inputValX = 0;
-   GLint sceneIndex = 3;
+   GLint sceneIndex = 1;
    GLfloat inputCV0 = 0.0;
    GLfloat inputCV1 = 0.0;
    GLfloat inputCV2 = 0.;
@@ -593,6 +593,13 @@ bool readKeyboard(){
 	}
 	return true;
 } 
+
+void destroyShader(){
+	glDeleteProgram(state->program);
+	eglMakeCurrent(state->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+	eglDestroySurface( state->display, state->surface);
+	eglDestroyContext(state->display, state->context);
+}
   
  
 //==============================================================================
@@ -619,29 +626,25 @@ int main ()
    {
 
 	  if(!readKeyboard()){
-		break;
+		destroyShader();
+		terminate = true;
 	  }
-	  
-		
-	draw_triangles(state, cx, cy, 0.003);
-	
-	if(loadNewScene  == true){
-		glDeleteProgram(state->program);
-		eglMakeCurrent(state->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-		eglDestroySurface( state->display, state->surface);
-		eglDestroyContext(state->display, state->context);
+	  else if (loadNewScene  == true){
+		destroyShader();
 		init_ogl(state);
 		init_shaders(state, false);
 		loadNewScene = false;
-	}
-	
+	  }
+	  else{
+		  draw_triangles(state, cx, cy, 0.003);
+	  }
 
    }
    
-   
-   
+ 
    fflush(stdout);
     fprintf(stderr, "%s.\n", strerror(errno));
+   
    
    return 0;
 }
