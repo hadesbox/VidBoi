@@ -36,9 +36,26 @@ Check out: https://thebookofshaders.com/ and you will be creating your own crazi
 When you're ready to take the show on the road and/or open your creations up to the world of modular synthesizers, take thesame code and plug it into the VidBoi.
 
 ## Installation
-1. flash rasbian
-2. git clone https://github.com/teafella/VidBoi
-2. sudo apt-get install libsoil-dev
+0. flash rasbian
+8. git clone https://github.com/teafella/VidBoi
+59. sudo apt-get install libsoil-dev
+
+##OPTIONAL 
+#Creating a Headless Raspberry Pi Zero ( Zero + Wire + Laptop and Ur Dev Ready Dawg)
+
+#Gear
+- Zero
+- Micro USB cable
+- Yurr Laptop
+
+# Steps
+1. OTG that thang:
+		Guide: https://gist.github.com/gbaman/975e2db164b3ca2b51ae11e45e8fd40a 
+2. Make sure you are sharing your wifi Connection: 
+		OSX Guide: https://stevegrunwell.com/blog/raspberry-pi-zero-share-internet/
+3. Log in with VNC: 
+		Instructions: https://raspberrypi.stackexchange.com/questions/13986/how-to-have-remote-desktop-on-macbook-with-raspberry-pi
+
 
 ## About The Creator
 Ronald Sardarian is a musician, creative programmer and modular synthesizer enthusiast.
