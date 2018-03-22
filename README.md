@@ -35,10 +35,16 @@ Check out: https://thebookofshaders.com/ and you will be creating your own crazi
 
 When you're ready to take the show on the road and/or open your creations up to the world of modular synthesizers, take thesame code and plug it into the VidBoi.
 
-## Installation
+# Installation
+## Software
 0. flash rasbian
 8. git clone https://github.com/teafella/VidBoi
 59. sudo apt-get install libsoil-dev
+
+#Hardware (Dev Notes)
+
+![VMCP3008](https://github.com/teafella/VidBoi/blob/master/images/MCP3008pinout.gif)
+
 
 # OPTIONAL Setup
 
