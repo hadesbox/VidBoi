@@ -40,16 +40,16 @@ When you're ready to take the show on the road and/or open your creations up to 
 8. git clone https://github.com/teafella/VidBoi
 59. sudo apt-get install libsoil-dev
 
-## OPTIONAL 
+# OPTIONAL Setup
 
-# Creating a Headless Raspberry Pi Zero ( Zero + Wire + Laptop and Ur Dev Ready Dawg)
+## Creating a Headless Raspberry Pi Zero (Ez Dev Ready Rig)
 
-# Gear
+### Gear
 - Zero
 - Micro USB cable
 - Yurr Laptop
 
-# Steps
+### Steps
 1. OTG that thang:
 		Guide: https://gist.github.com/gbaman/975e2db164b3ca2b51ae11e45e8fd40a 
 2. Make sure you are sharing your wifi Connection: 
