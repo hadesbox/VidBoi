@@ -41,9 +41,9 @@ When you're ready to take the show on the road and/or open your creations up to 
 8. git clone https://github.com/teafella/VidBoi
 59. sudo apt-get install libsoil-dev
 
-#Hardware (Dev Notes)
+# Hardware (Dev Notes)
 
-###MCP3008 Pinout
+### MCP3008 Pinout
 ![VMCP3008](https://github.com/teafella/VidBoi/blob/master/images/MCP3008Pinout.gif)
 
 
