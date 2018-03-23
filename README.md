@@ -43,7 +43,9 @@ When you're ready to take the show on the road and/or open your creations up to 
 
 #Hardware (Dev Notes)
 
-![VMCP3008](https://github.com/teafella/VidBoi/blob/master/images/MCP3008pinout.gif)
+###MCP3008 Pinout
+![VMCP3008](https://github.com/teafella/VidBoi/blob/master/images/MCP3008Pinout.gif)
+
 
 
 # OPTIONAL Setup
